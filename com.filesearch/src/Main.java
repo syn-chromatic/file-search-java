@@ -12,13 +12,13 @@ public class Main {
         String[] exclude_dirs = {};
 
 
-        file_search.set_root(root);
-        file_search.set_exclusive_filenames(exclusive_filenames);
-        file_search.set_exclusive_extensions(exclusive_exts);
-        file_search.set_exclude_directories(exclude_dirs);
+        file_search.setRoot(root);
+        file_search.setExclusiveFilenames(exclusive_filenames);
+        file_search.setExclusiveExtensions(exclusive_exts);
+        file_search.setExcludeDirectories(exclude_dirs);
 
         System.out.println("Searching.. ");
-        ArrayList<Path> files = file_search.search_files();
+        ArrayList<Path> files = file_search.searchFiles();
 
         for (Path file : files) {
             System.out.println(file);

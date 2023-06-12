@@ -24,26 +24,26 @@ public class FileSearch {
         this.exclude_dirs = new ArrayList<>();
     }
 
-    public void set_root(String root) {
+    public void setRoot(String root) {
         this.root = Optional.of(Paths.get(root));
     }
 
-    public void set_exclusive_filenames(String[] filenames) {
+    public void setExclusiveFilenames(String[] filenames) {
         List<String> filenames_list = Arrays.asList(filenames);
         this.exclusive_filenames = new ArrayList<>(filenames_list);
     }
 
-    public void set_exclusive_extensions(String[] exts) {
+    public void setExclusiveExtensions(String[] exts) {
         ArrayList<String> exclusive_exts = new ArrayList<>();
 
         for (String ext: exts) {
-            ext = this.format_extension(ext);
+            ext = this.formatExtension(ext);
             exclusive_exts.add(ext);
         }
         this.exclusive_exts = exclusive_exts;
     }
 
-    public void set_exclude_directories(String[] dirs) {
+    public void setExcludeDirectories(String[] dirs) {
         List<String> dir_list = Arrays.asList(dirs);
         ArrayList<String> dir_array = new ArrayList<>(dir_list);
 
@@ -56,16 +56,16 @@ public class FileSearch {
         this.exclude_dirs = exclude_dirs;
     }
 
-    public ArrayList<Path> search_files() {
+    public ArrayList<Path> searchFiles() {
         ArrayList<Path> roots = new ArrayList<>();
         ArrayList<Path> files = new ArrayList<>();
 
-        Path root = this.get_root_path();
+        Path root = this.getRootPath();
         this.search(root, roots, files);
         return files;
     }
 
-    private String format_extension(String ext) {
+    private String formatExtension(String ext) {
         ext = ext.strip();
         ext = ext.toLowerCase();
 
@@ -75,7 +75,7 @@ public class FileSearch {
         return ext;
     }
 
-    private String get_file_stem(Path path) {
+    private String getFileStem(Path path) {
         String file_name = path.getFileName().toString();
         int ext_idx = file_name.lastIndexOf('.');
 
@@ -85,7 +85,7 @@ public class FileSearch {
         return "";
     }
 
-    private String get_file_extension(Path path) {
+    private String getFileExtension(Path path) {
         String file_name = path.getFileName().toString();
         int ext_idx = file_name.lastIndexOf('.');
 
@@ -95,14 +95,14 @@ public class FileSearch {
         return "";
     }
 
-    private boolean get_filter_validation(Path path) {
-        boolean is_exclusive_filename = this.is_exclusive_filename(path);
-        boolean is_exclusive_extension = this.is_exclusive_extension(path);
+    private boolean getFilterValidation(Path path) {
+        boolean is_exclusive_filename = this.isExclusiveFilename(path);
+        boolean is_exclusive_extension = this.isExclusiveExtension(path);
         boolean filter_validation = is_exclusive_filename && is_exclusive_extension;
         return filter_validation;
     }
 
-    private Optional<Path> get_canonical_path(Path path) {
+    private Optional<Path> getCanonicalPath(Path path) {
         try {
             File file = path.toFile();
             Path path_canonical = Path.of(file.getCanonicalPath());
@@ -113,7 +113,7 @@ public class FileSearch {
         }
     }
 
-    private Optional<DirectoryStream<Path>> get_directory_entries(Path root) {
+    private Optional<DirectoryStream<Path>> getDirectoryEntries(Path root) {
         try {
             DirectoryStream<Path> stream = Files.newDirectoryStream(root);
             return Optional.of(stream);
@@ -123,18 +123,18 @@ public class FileSearch {
         }
     }
 
-    private Path get_abs_path() {
+    private Path getAbsPath() {
         return Paths.get("").toAbsolutePath();
     }
 
-    private Path get_root_path() {
+    private Path getRootPath() {
         if (this.root.isPresent()) {
             return this.root.get();
         }
-        return this.get_abs_path();
+        return this.getAbsPath();
     }
 
-    private boolean is_same_directory(Path path, Path dir) {
+    private boolean isSameDirectory(Path path, Path dir) {
         if (Files.exists(dir)) {
             while (path != path.getRoot()) {
                 if (path.equals(dir)) {
@@ -146,12 +146,12 @@ public class FileSearch {
         return false;
     }
 
-    private boolean is_exclusive_filename(Path path) {
+    private boolean isExclusiveFilename(Path path) {
         if (this.exclusive_filenames.isEmpty()) {
             return true;
         }
 
-        String file_stem = this.get_file_stem(path);
+        String file_stem = this.getFileStem(path);
 
         for (String file_name : this.exclusive_filenames) {
             if (file_name.equals(file_stem)) {
@@ -161,14 +161,14 @@ public class FileSearch {
         return false;
     }
 
-    private boolean is_exclusive_extension(Path path) {
+    private boolean isExclusiveExtension(Path path) {
         if (this.exclusive_exts.isEmpty()) {
             return true;
         }
 
         for (String ext : this.exclusive_exts) {
-            ext = this.format_extension(ext);
-            String file_ext = this.get_file_extension(path);
+            ext = this.formatExtension(ext);
+            String file_ext = this.getFileExtension(path);
             if (file_ext.equals(ext)) {
                 return true;
             }
@@ -176,13 +176,13 @@ public class FileSearch {
         return false;
     }
 
-    private boolean is_excluded_directory(Path path) {
+    private boolean isExcludedDirectory(Path path) {
         if (this.exclude_dirs.isEmpty()) {
             return false;
         }
 
         for (Path dir : this.exclude_dirs) {
-            boolean is_same_directory = this.is_same_directory(path, dir);
+            boolean is_same_directory = this.isSameDirectory(path, dir);
             if (is_same_directory) {
                 return true;
             }
@@ -192,15 +192,15 @@ public class FileSearch {
 
     }
 
-    private void handle_file(Path path, ArrayList<Path> files) {
-        boolean filter_validation = this.get_filter_validation(path);
+    private void handleFile(Path path, ArrayList<Path> files) {
+        boolean filter_validation = this.getFilterValidation(path);
 
         if (!files.contains(path) && filter_validation) {
             files.add(path);
         }
     }
 
-    private void handle_folder(Path path, ArrayList<Path> roots, ArrayList<Path> files) {
+    private void handleFolder(Path path, ArrayList<Path> roots, ArrayList<Path> files) {
         if (!roots.contains(path)) {
             roots.add(path);
             this.search(path, roots, files);
@@ -209,14 +209,14 @@ public class FileSearch {
 
     private void walker(DirectoryStream<Path> entries, ArrayList<Path> roots, ArrayList<Path> files) {
         for (Path entry : entries) {
-            Optional<Path> op_path = this.get_canonical_path(entry);
+            Optional<Path> op_path = this.getCanonicalPath(entry);
             if (op_path.isPresent()) {
                 Path path = op_path.get();
 
                 if (Files.isRegularFile(path)) {
-                    this.handle_file(path, files);
+                    this.handleFile(path, files);
                 } else if (Files.isDirectory(path)) {
-                    this.handle_folder(path, roots, files);
+                    this.handleFolder(path, roots, files);
                 }
             }
 
@@ -224,15 +224,15 @@ public class FileSearch {
     }
 
     private void search(Path root, ArrayList<Path> roots, ArrayList<Path> files) {
-        Optional<Path> root_canonical_op = this.get_canonical_path(root);
+        Optional<Path> root_canonical_op = this.getCanonicalPath(root);
         if (root_canonical_op.isPresent()) {
             Path root_canonical = root_canonical_op.get();
 
-            if (this.is_excluded_directory(root_canonical)) {
+            if (this.isExcludedDirectory(root_canonical)) {
                 return;
             }
 
-            Optional<DirectoryStream<Path>> entries_op = this.get_directory_entries(root_canonical);
+            Optional<DirectoryStream<Path>> entries_op = this.getDirectoryEntries(root_canonical);
             if (entries_op.isPresent()) {
                 DirectoryStream<Path> entries = entries_op.get();
                 this.walker(entries, roots, files);
