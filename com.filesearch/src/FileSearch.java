@@ -61,8 +61,18 @@ public class FileSearch {
         ArrayList<Path> files = new ArrayList<>();
 
         Path root = this.getRootPath();
+        this.printSearching(root);
         this.search(root, roots, files);
         return files;
+    }
+
+    private void printSearching(Path root) {
+        Optional<Path> canonical_path_op = this.getCanonicalPath(root);
+        if (canonical_path_op.isPresent()) {
+            Path canonical_path = canonical_path_op.get();
+            String str = String.format("Searching from root: [%s]\n", canonical_path);
+            System.out.println(str);
+        }
     }
 
     private String formatExtension(String ext) {

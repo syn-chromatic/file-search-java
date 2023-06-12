@@ -17,8 +17,6 @@ public class Main {
         file_search.setExclusiveExtensions(exclusive_exts);
         file_search.setExcludeDirectories(exclude_dirs);
 
-        System.out.println("Searching.. ");
-
         ArrayList<Path> files = file_search.searchFiles();
 
         for (Path file : files) {
