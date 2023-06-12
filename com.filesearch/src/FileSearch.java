@@ -36,7 +36,7 @@ public class FileSearch {
     public void setExclusiveExtensions(String[] exts) {
         ArrayList<String> exclusive_exts = new ArrayList<>();
 
-        for (String ext: exts) {
+        for (String ext : exts) {
             ext = this.formatExtension(ext);
             exclusive_exts.add(ext);
         }
@@ -207,7 +207,8 @@ public class FileSearch {
         }
     }
 
-    private void walker(DirectoryStream<Path> entries, ArrayList<Path> roots, ArrayList<Path> files) {
+    private void walker(DirectoryStream<Path> entries, ArrayList<Path> roots,
+            ArrayList<Path> files) {
         for (Path entry : entries) {
             Optional<Path> op_path = this.getCanonicalPath(entry);
             if (op_path.isPresent()) {

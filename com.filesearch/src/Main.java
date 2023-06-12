@@ -7,7 +7,7 @@ public class Main {
         FileSearch file_search = new FileSearch();
 
         String root = "./";
-        String[] exclusive_filenames= {};
+        String[] exclusive_filenames = {};
         String[] exclusive_exts = {};
         String[] exclude_dirs = {};
 
@@ -18,6 +18,7 @@ public class Main {
         file_search.setExcludeDirectories(exclude_dirs);
 
         System.out.println("Searching.. ");
+
         ArrayList<Path> files = file_search.searchFiles();
 
         for (Path file : files) {
