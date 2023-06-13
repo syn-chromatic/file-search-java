@@ -198,8 +198,6 @@ public class FileSearch {
             }
         }
         return false;
-
-
     }
 
     private void handleFile(Path path, ArrayList<Path> files) {
@@ -230,7 +228,6 @@ public class FileSearch {
                     this.handleFolder(path, roots, files);
                 }
             }
-
         }
     }
 
