@@ -9,13 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
 
-
 public class FileSearch {
-    Optional<Path> root;
-    ArrayList<String> exclusive_filenames;
-    ArrayList<String> exclusive_exts;
-    ArrayList<Path> exclude_dirs;
-
+    private Optional<Path> root;
+    private ArrayList<String> exclusive_filenames;
+    private ArrayList<String> exclusive_exts;
+    private ArrayList<Path> exclude_dirs;
 
     public FileSearch() {
         this.root = Optional.empty();
