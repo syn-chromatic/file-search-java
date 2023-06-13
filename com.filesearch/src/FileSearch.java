@@ -108,8 +108,7 @@ public class FileSearch {
     private boolean getFilterValidation(Path path) {
         boolean is_exclusive_filename = this.isExclusiveFilename(path);
         boolean is_exclusive_extension = this.isExclusiveExtension(path);
-        boolean filter_validation = is_exclusive_filename && is_exclusive_extension;
-        return filter_validation;
+        return is_exclusive_filename && is_exclusive_extension;
     }
 
     private Optional<Path> getCanonicalPath(Path path) {
@@ -118,7 +117,8 @@ public class FileSearch {
             Path path_canonical = Path.of(file.getCanonicalPath());
             return Optional.of(path_canonical);
         } catch (IOException e) {
-            System.out.println("Path Inaccessible: " + path + "\n\n");
+            String str = String.format("Path Inaccessible: [%s]\n\n", path);
+            System.out.println(str);
             return Optional.empty();
         }
     }
@@ -128,7 +128,8 @@ public class FileSearch {
             DirectoryStream<Path> stream = Files.newDirectoryStream(root);
             return Optional.of(stream);
         } catch (IOException e) {
-            System.out.println("Path Inaccessible: " + root + "\n\n");
+            String str = String.format("Path Inaccessible: [%s]\n\n", root);
+            System.out.println(str);
             return Optional.empty();
         }
     }
