@@ -3,6 +3,7 @@
 ## `➢` Information
 A Java utility to search files with various filters such as:
 * Exclusive Filenames
+* Exclusive File Stems
 * Exclusive Extensions
 * Exclude Directories
 
