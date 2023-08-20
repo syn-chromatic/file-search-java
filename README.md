@@ -10,27 +10,29 @@ The algorithm recursively searches through all of the directories from the speci
 
 ## `➢` Example Usage
 ```java
-FileSearch file_search = new FileSearch();
+FileSearch fileSearch = new FileSearch();
 
 // Set the root directory for the file search
 String root = "./";
-file_search.setRoot(root);
-
-// Below examples are optional
+fileSearch.setRoot(root);
 
 // Specify filenames to exclusively search for
-String[] exclusive_filenames = {"README"};
-file_search.setExclusiveFilenames(exclusive_filenames);
+String[] exclusiveFilenames = {"README"};
+fileSearch.setExclusiveFilenames(exclusiveFilenames);
+
+// Specify file stems to exclusively search for
+String[] exclusiveFileStems = {"README"};
+fileSearch.setExclusiveFileStems(exclusiveFileStems);
 
 // Specify extensions to exclusively search for
-String[] exclusive_exts = {"md"};
-file_search.setExclusiveExtensions(exclusive_exts);
+String[] exclusiveExts = {"md"};
+fileSearch.setExclusiveExtensions(exclusiveExts);
 
 // Specify directories to exclude from the search
 // This excludes the path and not the directory name
-String[] exclude_dirs = {"./excluded_dir"};
-file_search.setExcludeDirectories(exclude_dirs);
+String[] excludeDirs = {"./excluded_dir"};
+fileSearch.setExcludeDirectories(excludeDirs);
 
-// Perform the file search and get the result
-ArrayList<Path> files = file_search.searchFiles();
+// Perform the file search and get the results
+HashSet<Path> files = fileSearch.searchFiles();
 ```

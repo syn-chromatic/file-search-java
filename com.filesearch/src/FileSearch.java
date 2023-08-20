@@ -1,135 +1,97 @@
 import java.io.File;
-import java.util.List;
-import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.LinkedList;
+
+
 
 public class FileSearch {
     private Optional<Path> root;
-    private ArrayList<String> exclusive_filenames;
-    private ArrayList<String> exclusive_exts;
-    private ArrayList<Path> exclude_dirs;
+    private HashSet<String> exclusiveFilenames;
+    private HashSet<String> exclusiveFileStems;
+    private HashSet<String> exclusiveExts;
+    private HashSet<Path> excludeDirs;
+    private Boolean quitDirectoryOnMatch;
+
 
     public FileSearch() {
         this.root = Optional.empty();
-        this.exclusive_filenames = new ArrayList<>();
-        this.exclusive_exts = new ArrayList<>();
-        this.exclude_dirs = new ArrayList<>();
+        this.exclusiveFilenames = new HashSet<String>();
+        this.exclusiveFileStems = new HashSet<String>();
+        this.exclusiveExts = new HashSet<String>();
+        this.excludeDirs = new HashSet<Path>();
+        this.quitDirectoryOnMatch = false;
     }
+
 
     public void setRoot(String root) {
         this.root = Optional.of(Paths.get(root));
     }
 
     public void setExclusiveFilenames(String[] filenames) {
-        List<String> filenames_list = Arrays.asList(filenames);
-        this.exclusive_filenames = new ArrayList<>(filenames_list);
+        HashSet<String> exclusiveFilenames = new HashSet<String>();
+        for (String filename : filenames) {
+            filename = filename.toLowerCase();
+            exclusiveFilenames.add(filename);
+        }
+        this.exclusiveFilenames = exclusiveFilenames;
     }
 
-    public void setExclusiveExtensions(String[] exts) {
-        ArrayList<String> exclusive_exts = new ArrayList<>();
-
-        for (String ext : exts) {
-            ext = this.formatExtension(ext);
-            exclusive_exts.add(ext);
+    public void setExclusiveFileStems(String[] fileStems) {
+        HashSet<String> exclusiveFileStems = new HashSet<String>();
+        for (String fileStem : fileStems) {
+            fileStem = fileStem.toLowerCase();
+            exclusiveFileStems.add(fileStem);
         }
-        this.exclusive_exts = exclusive_exts;
+        this.exclusiveFileStems = exclusiveFileStems;
+    }
+
+    public void setExclusiveExtensions(String[] extensions) {
+        HashSet<String> exclusiveExts = new HashSet<String>();
+        for (String extension : extensions) {
+            extension = formatExtension(extension);
+            exclusiveExts.add(extension);
+        }
+        this.exclusiveExts = exclusiveExts;
     }
 
     public void setExcludeDirectories(String[] dirs) {
-        List<String> dir_list = Arrays.asList(dirs);
-        ArrayList<String> dir_array = new ArrayList<>(dir_list);
-
-        ArrayList<Path> exclude_dirs = new ArrayList<>();
-        exclude_dirs.ensureCapacity(dir_array.size());
-
-        for (String dir : dir_array) {
-            exclude_dirs.add(Paths.get(dir));
+        HashSet<Path> excludeDirs = new HashSet<Path>();
+        for (String dir : dirs) {
+            excludeDirs.add(Paths.get(dir));
         }
-        this.exclude_dirs = exclude_dirs;
+        this.excludeDirs = excludeDirs;
     }
 
-    public ArrayList<Path> searchFiles() {
-        ArrayList<Path> roots = new ArrayList<>();
-        ArrayList<Path> files = new ArrayList<>();
+    public void setQuitDirectoryOnMatch(Boolean state) {
+        this.quitDirectoryOnMatch = state;
+    }
+
+    public HashSet<Path> searchFiles() {
+        HashSet<Path> files = new HashSet<Path>();
+        LinkedList<Path> queue = new LinkedList<Path>();
 
         Path root = this.getRootPath();
-        this.printSearching(root);
-        this.search(root, roots, files);
+        queue.addLast(root);
+
+        while (!queue.isEmpty()) {
+            Path dir = queue.poll();
+            search(dir, files, queue);
+        }
         return files;
     }
 
-    private void printSearching(Path root) {
-        Optional<Path> canonical_path_op = this.getCanonicalPath(root);
-        if (canonical_path_op.isPresent()) {
-            Path canonical_path = canonical_path_op.get();
-            String str = String.format("Searching from root: [%s]\n", canonical_path);
-            System.out.println(str);
-        }
-    }
-
     private String formatExtension(String ext) {
-        ext = ext.strip();
-        ext = ext.toLowerCase();
-
-        if (!ext.isEmpty() && ext.charAt(0) != '.') {
+        ext = ext.trim().toLowerCase();
+        if (!ext.isEmpty() && !ext.startsWith(".")) {
             ext = "." + ext;
         }
         return ext;
-    }
-
-    private String getFileStem(Path path) {
-        String file_name = path.getFileName().toString();
-        int ext_idx = file_name.lastIndexOf('.');
-
-        if (ext_idx > 0 && ext_idx < file_name.length() - 1) {
-            return file_name.substring(0, ext_idx);
-        }
-        return "";
-    }
-
-    private String getFileExtension(Path path) {
-        String file_name = path.getFileName().toString();
-        int ext_idx = file_name.lastIndexOf('.');
-
-        if (ext_idx > 0 && ext_idx < file_name.length() - 1) {
-            return file_name.substring(ext_idx);
-        }
-        return "";
-    }
-
-    private boolean getFilterValidation(Path path) {
-        boolean is_exclusive_filename = this.isExclusiveFilename(path);
-        boolean is_exclusive_extension = this.isExclusiveExtension(path);
-        return is_exclusive_filename && is_exclusive_extension;
-    }
-
-    private Optional<Path> getCanonicalPath(Path path) {
-        try {
-            File file = path.toFile();
-            Path path_canonical = Path.of(file.getCanonicalPath());
-            return Optional.of(path_canonical);
-        } catch (IOException e) {
-            String str = String.format("Path Inaccessible: [%s]\n\n", path);
-            System.out.println(str);
-            return Optional.empty();
-        }
-    }
-
-    private Optional<DirectoryStream<Path>> getDirectoryEntries(Path root) {
-        try {
-            DirectoryStream<Path> stream = Files.newDirectoryStream(root);
-            return Optional.of(stream);
-        } catch (IOException e) {
-            String str = String.format("Path Inaccessible: [%s]\n\n", root);
-            System.out.println(str);
-            return Optional.empty();
-        }
     }
 
     private Path getAbsPath() {
@@ -143,7 +105,32 @@ public class FileSearch {
         return this.getAbsPath();
     }
 
-    private boolean isSameDirectory(Path path, Path dir) {
+
+    private Optional<Path> getCanonicalPath(Path path) {
+        try {
+            File file = path.toFile();
+            Path path_canonical = Path.of(file.getCanonicalPath());
+            return Optional.of(path_canonical);
+        } catch (IOException e) {
+            String str = String.format("Path Inaccessible: [%s]\n\n", path);
+            System.out.println(str);
+            return Optional.empty();
+        }
+    }
+
+
+    private Optional<DirectoryStream<Path>> getDirectoryEntries(Path root) {
+        try {
+            DirectoryStream<Path> stream = Files.newDirectoryStream(root);
+            return Optional.of(stream);
+        } catch (IOException e) {
+            String str = String.format("Path Inaccessible: [%s]\n\n", root);
+            System.out.println(str);
+            return Optional.empty();
+        }
+    }
+
+    private Boolean isSameDirectory(Path path, Path dir) {
         if (Files.exists(dir)) {
             while (path != path.getRoot()) {
                 if (path.equals(dir)) {
@@ -155,42 +142,90 @@ public class FileSearch {
         return false;
     }
 
-    private boolean isExclusiveFilename(Path path) {
-        if (this.exclusive_filenames.isEmpty()) {
+
+
+    private String getFileExtension(Path path) {
+        String file_name = path.getFileName().toString();
+        int ext_idx = file_name.lastIndexOf('.');
+
+        if (ext_idx > 0 && ext_idx < file_name.length() - 1) {
+            return file_name.substring(ext_idx);
+        }
+        return "";
+    }
+
+    private String getFileStem(Path path) {
+        String fileName = path.getFileName().toString();
+        int extIdx = fileName.lastIndexOf('.');
+
+        if (extIdx > 0) {
+            return fileName.substring(0, extIdx);
+        }
+        return fileName;
+    }
+
+    private Boolean getFilterValidation(Path path) {
+        Boolean isExclusiveFilename = this.isExclusiveFilename(path);
+        Boolean isExclusiveFileStem = this.isExclusiveFileStem(path);
+        Boolean isExclusiveExtension = this.isExclusiveExtension(path);
+
+        Boolean filterValidation =
+                isExclusiveFilename && isExclusiveFileStem && isExclusiveExtension;
+        return filterValidation;
+    }
+
+    private Boolean isExclusiveFilename(Path path) {
+        if (this.exclusiveFilenames.isEmpty()) {
             return true;
         }
 
-        String file_stem = this.getFileStem(path);
+        String filename = path.getFileName().toString();
+        filename = filename.toLowerCase();
 
-        for (String file_name : this.exclusive_filenames) {
-            if (file_name.equals(file_stem)) {
-                return true;
-            }
+        if (this.exclusiveFilenames.contains(filename)) {
+            return true;
+        }
+        return false;
+
+    }
+
+    private Boolean isExclusiveFileStem(Path path) {
+        if (this.exclusiveFileStems.isEmpty()) {
+            return true;
+        }
+
+        String fileStem = this.getFileStem(path);
+        fileStem = fileStem.toLowerCase();
+
+        if (this.exclusiveFileStems.contains(fileStem)) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    private Boolean isExclusiveExtension(Path path) {
+        if (this.exclusiveExts.isEmpty()) {
+            return true;
+        }
+
+        String fileExt = this.getFileExtension(path);
+        fileExt = fileExt.toLowerCase();
+        fileExt = this.formatExtension(fileExt);
+
+        if (this.exclusiveExts.contains(fileExt)) {
+            return true;
         }
         return false;
     }
 
-    private boolean isExclusiveExtension(Path path) {
-        if (this.exclusive_exts.isEmpty()) {
-            return true;
-        }
-
-        for (String ext : this.exclusive_exts) {
-            ext = this.formatExtension(ext);
-            String file_ext = this.getFileExtension(path);
-            if (file_ext.equals(ext)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isExcludedDirectory(Path path) {
-        if (this.exclude_dirs.isEmpty()) {
+    private Boolean isExcludedDirectory(Path path) {
+        if (this.excludeDirs.isEmpty()) {
             return false;
         }
 
-        for (Path dir : this.exclude_dirs) {
+        for (Path dir : this.excludeDirs) {
             boolean is_same_directory = this.isSameDirectory(path, dir);
             if (is_same_directory) {
                 return true;
@@ -199,42 +234,44 @@ public class FileSearch {
         return false;
     }
 
-    private void handleFile(Path path, ArrayList<Path> files) {
-        boolean filter_validation = this.getFilterValidation(path);
+    private Boolean handleFile(Path path, HashSet<Path> files) {
+        Boolean filterValidation = this.getFilterValidation(path);
 
-        if (!files.contains(path) && filter_validation) {
+        if (!files.contains(path) && filterValidation) {
             files.add(path);
+            return true;
         }
+        return false;
     }
 
-    private void handleFolder(Path path, ArrayList<Path> roots, ArrayList<Path> files) {
-        if (!roots.contains(path)) {
-            roots.add(path);
-            this.search(path, roots, files);
-        }
-    }
-
-    private void walker(DirectoryStream<Path> entries, ArrayList<Path> roots,
-            ArrayList<Path> files) {
-        for (Path entry : entries) {
-            Optional<Path> op_path = this.getCanonicalPath(entry);
-            if (op_path.isPresent()) {
-                Path path = op_path.get();
-
-                if (Files.isRegularFile(path)) {
-                    this.handleFile(path, files);
-                } else if (Files.isDirectory(path)) {
-                    this.handleFolder(path, roots, files);
-                }
+    private void handleEntry(Path entry, HashSet<Path> files,
+            LinkedList<Path> additional_directories) {
+        File file = entry.toFile();
+        if (file.isFile()) {
+            Boolean is_match = this.handleFile(entry, files);
+            if (is_match && this.quitDirectoryOnMatch) {
+                return;
             }
+        } else if (file.isDirectory()) {
+            additional_directories.addLast(entry);
         }
     }
 
-    private void search(Path root, ArrayList<Path> roots, ArrayList<Path> files) {
+    private void walker(DirectoryStream<Path> entries, HashSet<Path> files,
+            LinkedList<Path> queue) {
+
+        LinkedList<Path> additional_directories = new LinkedList<Path>();
+        for (Path entry : entries) {
+            this.handleEntry(entry, files, additional_directories);
+        }
+
+        queue.addAll(additional_directories);
+    }
+
+    private void search(Path root, HashSet<Path> files, LinkedList<Path> queue) {
         Optional<Path> root_canonical_op = this.getCanonicalPath(root);
         if (root_canonical_op.isPresent()) {
             Path root_canonical = root_canonical_op.get();
-
             if (this.isExcludedDirectory(root_canonical)) {
                 return;
             }
@@ -242,7 +279,7 @@ public class FileSearch {
             Optional<DirectoryStream<Path>> entries_op = this.getDirectoryEntries(root_canonical);
             if (entries_op.isPresent()) {
                 DirectoryStream<Path> entries = entries_op.get();
-                this.walker(entries, roots, files);
+                this.walker(entries, files, queue);
             }
         }
     }
